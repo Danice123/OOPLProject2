@@ -9,6 +9,7 @@ import java.net.URL
 import org.apache.http.client.HttpResponseException
 
 object SearchEngine extends App {
+
 	def getLinks( html : String , baseURL : String) : List[String] = {
 		// See http://www.mkyong.com/regular-expressions/how-to-extract-html-links-with-regular-expression/ for explanation of regex
 		val aTagRegex = """(?i)<a([^>]+)>(.+?)</a>""".r
@@ -38,6 +39,7 @@ object SearchEngine extends App {
 				
 		(cleaned map { getURL(_) } ).filter(_.length > 0).toList        
 	}
+	
 	def fetch(url : String) : String = {
 		try { new DefaultHttpClient().execute(new HttpGet(url), new BasicResponseHandler()) } catch {
 			case hre : HttpResponseException => {
@@ -46,13 +48,22 @@ object SearchEngine extends App {
 			}
 		}
 	}
-	def getTerms(html : String, sort : String => Boolean) : List[String] = { for (s <- html.split("[^a-zA-Z0-9]").toList if s != "" && sort(s)) yield s }
-	def crawlAndIndex(url : String, maxPages : Int) : List[PageSummary] = { crawlAndIndex(url, maxPages, List[PageSummary]()) }
+	
+	def getTerms(html : String, sort : String => Boolean) : List[String] = {
+		for (s <- html.split("[^a-zA-Z0-9]").toList if s != "" && sort(s)) yield s
+	}
+	
+	def crawlAndIndex(url : String, maxPages : Int) : List[PageSummary] = {
+		crawlAndIndex(url, maxPages, List[PageSummary]())
+	}
+	
 	def crawlAndIndex(url : String,  maxPages : Int, list : List[PageSummary]) : List[PageSummary] = {
 		val html = fetch(url)
 		val links = getLinks(html, url)
 		var newList = new PageSummary(url, getTerms(html, (s : String) => s.length > 1)) :: list
-		for (link <- links if !(for (p <- newList) yield p.url).contains(link) && newList.size < maxPages) { newList = crawlAndIndex(link, maxPages, newList) }
+		for (link <- links if !(for (p <- newList) yield p.url).contains(link) && newList.size < maxPages) {
+			newList = crawlAndIndex(link, maxPages, newList)
+		}
 		newList
 	}
 }
