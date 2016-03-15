@@ -1,34 +1,35 @@
 
 class Page(val url : String) {
-	val src = SearchEngine.fetch(url)
-	val terms = SearchEngine.getTerms(src, (s : String) => s.length > 1)
+	val terms = SearchEngine.getTerms(SearchEngine.fetch(url), (s : String) => s.length > 1)
 	
 	def numContains(word: String): Int = terms.count( _.toUpperCase == word.toUpperCase )
-
+	def containsWord(word: String): Boolean = terms.exists { _.toUpperCase == word.toUpperCase }
 	
-	def containsWord(word: String): Boolean = {
-		for (i<-terms) {
-			if (i.toUpperCase == word.toUpperCase) return true
+	override def hashCode = url.hashCode
+	override def equals(other: Any) = other match {
+		case that : Page => this.url == that.url
+		case _ => false
+	}
+	
+	def fracMatching(term : String) : Double = {
+		(for (s <- terms if term.compareToIgnoreCase(s) == 0) yield s).size / terms.size.toDouble
+	}
+	
+	def fracMatching(list : List[String]) : Double =  {
+		list.size match {
+			case 0 => 0
+			case 1 => fracMatching(list.last)
+			case _ => fracMatching(list.last) + fracMatching(list.take(list.size - 1))
 		}
-		
-		return false
 	}
 }
 
-class IndexedPages(val pages : List[Page]) extends Iterable[Page] {
-    val items: scala.collection.mutable.Seq[Page] with scala.collection.generic.Growable[Page] = scala.collection.mutable.Buffer[Page]()
+class IndexedPages(val items : scala.collection.mutable.Seq[Page] with scala.collection.generic.Growable[Page]) extends Iterable[Page] {
 	
-	//populate items
-	for (i<-pages) { items += i }
-	
-	override def iterator = pages.iterator
+	override def iterator = items.iterator
 	
 	def numContaining(word : String): Double = {
-		var total = 0.0
-		for (i<-pages) {
-			if (i.containsWord(word)) total += 1.0
-		}
-		total
+		(for (i <- items if i.containsWord(word)) yield i).size
 	}
 	
 	//def search(q: Query): SearchResults = {
@@ -47,19 +48,12 @@ class IndexedPages(val pages : List[Page]) extends Iterable[Page] {
     //   }
 }
 
-//Sometimes it makes sense to have a fixed, immutable set of indexed pages. In other situations, we might
-//want to add to the pages as we crawl more of the web. If our default IndexedPages interface does not
-//allow us to add new pages (which is a good idea in general), then we can expose that additional
-//functionality by mixing in traits.
 trait Augmentable[A] {
- val items: scala.collection.mutable.Seq[A] with scala.collection.generic.Growable[A]
+	val items: scala.collection.mutable.Seq[A] with scala.collection.generic.Growable[A]
 
-//Complete the add method. It should return false if the item is already in the collection (in which case
-//nothing is added) and true if it was a new item (in which case it is added to items) [2 pts].
- def add(newItem: A): Boolean = {
-	if (items.contains(newItem)) return false
-	else items += newItem
-	
-	return true
- }
+	def add(newItem: A): Boolean = {
+		if (items.contains(newItem)) return false
+		items += newItem
+		return true
+	}
 }

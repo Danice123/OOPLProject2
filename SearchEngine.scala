@@ -8,20 +8,7 @@ import org.apache.http.params._
 import java.net.URL
 import org.apache.http.client.HttpResponseException
 
-
-
 object SearchEngine extends App {
-	
-	//val p = new Page("http://www.randyconnolly.com/tests/process.php")
-	//val p2 = new Page("http://www.tfidf.com/")
-	//
-	//val y = new IndexedPages(List(p,p2))
-	//val q: Query = new Query(List("Frequency", "no"))
-	//
-	//val test = new SearchResults(q, y)
-	//
-	//val list = test.results()
-	//test.printTop(2)
 	
 	def getLinks( html : String , baseURL : String) : List[String] = {
 		// See http://www.mkyong.com/regular-expressions/how-to-extract-html-links-with-regular-expression/ for explanation of regex
@@ -66,15 +53,9 @@ object SearchEngine extends App {
 		for (s <- html.split("[^a-zA-Z0-9]").toList if s != "" && sort(s)) yield s
 	}
 	
-	//mode should be "read" or "augment": for "read", no mixins are needed; for "augment", Augmentable
-	//should be mixed in to the returned object [4 pts].
-	//If weight is true, then the returned object should be a WeightedIndexedPages [1 pts]. If weight is false, a
-	//plain IndexedPages is returned [1 pts].
-	
 	def crawlAndIndex(startUrl: String, maxPages: Int, mode: String = "read", weight: Boolean = true): IndexedPages = {
-		
-	
-		return new IndexedPages(Nil) with Augmentable[Page]
+		var list = scala.collection.mutable.ArrayBuffer(new Page(startUrl))
+		return new IndexedPages(list) with Augmentable[Page]
 	}
 
 	//Old version
