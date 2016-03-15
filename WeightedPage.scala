@@ -16,7 +16,7 @@ trait Weighted[A] {
  }
 }
 
-class WeightedPages(val items : List[Page]) extends IndexedPages(items) with Weighted[Page] {
+class WeightedPages(override val items : List[Page]) extends IndexedPages(items) with Weighted[Page] {
 	def weighting(page : Page) : Double = { 1.0 / page.url.length }
 	val weightingFn : Page => Double = weighting
 	
