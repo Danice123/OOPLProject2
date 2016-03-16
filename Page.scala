@@ -32,20 +32,10 @@ class IndexedPages(val items : scala.collection.mutable.Seq[Page] with scala.col
 		(for (i <- items if i.containsWord(word)) yield i).size
 	}
 	
-	//def search(q: Query): SearchResults = {
-    //   val beforeWeights: SearchResults = //TODO: call superclass method [1 pts]
-    //   val oldScores = beforeWeights.results.unzip._1
-    //   
-    //   val unnormScores = oldScores.zip(weights).map { (x) => (x._1 * x._2) }
-    //   
-    //   //Multiplying by weights may change the scale of the scores
-    //   //Thus, newScores is unnormScores by the total of the unnormScores
-    //   // (This is called "normalizing" the scores)
-    //   val total = unnormScores.foldLeft(0.0) {_+_}
-    //   val newScores = unnormScores.map { _ / total }
-    //   
-    //   // TODO: create and return adjusted SearchResults from newScores [4 pts]
-    //   }
+	def search(q : Query) : SearchResults = q match {
+		case weighted : WeightedQuery => new SearchResultsQWeighted(weighted, this)
+		case query : Query => new SearchResults(query, this)
+	}
 }
 
 trait Augmentable[A] {

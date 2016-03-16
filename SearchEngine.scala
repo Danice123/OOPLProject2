@@ -7,6 +7,7 @@ import org.apache.http.message._
 import org.apache.http.params._
 import java.net.URL
 import org.apache.http.client.HttpResponseException
+import scala.collection.mutable.ArrayBuffer
 
 object SearchEngine extends App {
 	
@@ -54,22 +55,31 @@ object SearchEngine extends App {
 	}
 	
 	def crawlAndIndex(startUrl: String, maxPages: Int, mode: String = "read", weight: Boolean = true): IndexedPages = {
-		var list = scala.collection.mutable.ArrayBuffer(new Page(startUrl))
-		return new IndexedPages(list) with Augmentable[Page]
+		val list = ArrayBuffer[Page]()
+		crawlAndIndex(startUrl, maxPages, list)
+		
+		if (weight) {
+			if (mode == "augment") return new WeightedPages(list) with Augmentable[Page]
+			return new WeightedPages(list)
+		} else {
+			if (mode == "augment") return new IndexedPages(list) with Augmentable[Page]
+			return new IndexedPages(list)
+		}
 	}
-
-	//Old version
-	//def crawlAndIndex(url : String, maxPages : Int) : List[PageSummary] = {
-	//	crawlAndIndex(url, maxPages, List[PageSummary]())
-	//}
 	
-	//def crawlAndIndex(url : String,  maxPages : Int, list : List[PageSummary]) : List[PageSummary] = {
-	//	val html = fetch(url)
-	//	val links = getLinks(html, url)
-	//	var newList = new PageSummary(url, getTerms(html, (s : String) => s.length > 1)) :: list
-	//	for (link <- links if !(for (p <- newList) yield p.url).contains(link) && newList.size < maxPages) {
-	//		newList = crawlAndIndex(link, maxPages, newList)
-	//	}
-	//	newList
-	//}
+	def crawlAndIndex(url : String,  maxPages : Int, list : ArrayBuffer[Page]) : Unit = {
+		val html = fetch(url)
+		val links = getLinks(html, url)
+		list += new Page(url)
+		
+		for (link <- links if !(for (p <- list) yield p.url).contains(link) && list.size < maxPages) {
+			crawlAndIndex(link, maxPages, list)
+		}
+	}
+	
+	val pages = SearchEngine.crawlAndIndex("http://www.globalchartservices.com", 50, weight=true).asInstanceOf[WeightedPages]
+	
+	val query = new WeightedQuery(List("service", "chart"))
+	
+	pages.search(query).printTop(5)
 }
