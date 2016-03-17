@@ -46,6 +46,9 @@ object SearchEngine extends App {
 			case hre : HttpResponseException => {
 				print("There has been an error")
 				""
+			} case e : Throwable => {
+				print("?")
+				""
 			}
 		}
 	}
@@ -68,18 +71,17 @@ object SearchEngine extends App {
 	}
 	
 	def crawlAndIndex(url : String,  maxPages : Int, list : ArrayBuffer[Page]) : Unit = {
-		val html = fetch(url)
-		val links = getLinks(html, url)
-		list += new Page(url)
+		val page = new Page(url)
+		list += page
 		
-		for (link <- links if !(for (p <- list) yield p.url).contains(link) && list.size < maxPages) {
+		for (link <- page.links if !(for (p <- list) yield p.url).contains(link) && list.size < maxPages) {
 			crawlAndIndex(link, maxPages, list)
 		}
 	}
 	
-	val pages = SearchEngine.crawlAndIndex("http://www.globalchartservices.com", 50, weight=true).asInstanceOf[WeightedPages]
+	val pages = SearchEngine.crawlAndIndex("http://www.yahoo.com", 50, weight=true).asInstanceOf[WeightedPages]
 	
-	val query = new WeightedQuery(List("service", "chart"))
+	//val query = new WeightedQuery(List("service", "chart"))
 	
-	pages.search(query).printTop(5)
+	//pages.search(query).printTop(5)
 }

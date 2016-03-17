@@ -1,4 +1,5 @@
 class Page(val url : String) {
+
 	def filterFunction(s: String): Boolean = {
 		val result = s match {
 	
@@ -38,8 +39,9 @@ class Page(val url : String) {
 		return result
 	}
 	
-	
 	val terms = SearchEngine.getTerms(SearchEngine.fetch(url), filterFunction)
+	val html = SearchEngine.fetch(url)
+	val links = SearchEngine.getLinks(html, url)
 	
 	def numContains(word: String): Int = terms.count( _.toUpperCase == word.toUpperCase )
 	def containsWord(word: String): Boolean = terms.exists { _.toUpperCase == word.toUpperCase }
