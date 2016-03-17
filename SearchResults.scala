@@ -24,7 +24,7 @@ class SearchResults(val query: Query, val pages: IndexedPages) {
 	}
 	
 	def printTop(n: Int): Unit = {
-		results.take(n).foreach(x => println( x._1 + ", " + x._2))
+		results().take(n).foreach(x => println( x._1 + ", " + x._2))
 	}	
 }
 

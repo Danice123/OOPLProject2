@@ -44,7 +44,7 @@ object SearchEngine extends App {
 	def fetch(url : String) : String = {
 		try { new DefaultHttpClient().execute(new HttpGet(url), new BasicResponseHandler()) } catch {
 			case hre : HttpResponseException => {
-				print("There has been an error")
+				println("There has been an error")
 				""
 			} case e : Throwable => {
 				print("?")
@@ -74,14 +74,21 @@ object SearchEngine extends App {
 		val page = new Page(url)
 		list += page
 		
-		for (link <- page.links if !(for (p <- list) yield p.url).contains(link) && list.size < maxPages) {
+		for (link <- page.links.map(s => trimURL(s)) if !(for (p <- list) yield p.url).contains(link) && list.size < maxPages) {
 			crawlAndIndex(link, maxPages, list)
 		}
 	}
 	
-	val pages = SearchEngine.crawlAndIndex("http://www.yahoo.com", 50, weight=true).asInstanceOf[WeightedPages]
+	def trimURL(url : String) : String = {
+		var newUrl = url
+		if (newUrl.endsWith("#")) newUrl = newUrl.substring(0, newUrl.length - 1)
+		
+		return newUrl
+	}
 	
-	//val query = new WeightedQuery(List("service", "chart"))
+	val pages = SearchEngine.crawlAndIndex("http://www.yahoo.com", 100, weight=false)//.asInstanceOf[WeightedPages]
+	
+	//val query = new Query(List("sports", "football", "Patriots"))
 	
 	//pages.search(query).printTop(5)
 }
