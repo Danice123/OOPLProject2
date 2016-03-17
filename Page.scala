@@ -1,6 +1,8 @@
 
 class Page(val url : String) {
-	val terms = SearchEngine.getTerms(SearchEngine.fetch(url), (s : String) => s.length > 1)
+	val html = SearchEngine.fetch(url)
+	val terms = SearchEngine.getTerms(html, (s : String) => s.length > 1)
+	val links = SearchEngine.getLinks(html, url)
 	
 	def numContains(word: String): Int = terms.count( _.toUpperCase == word.toUpperCase )
 	def containsWord(word: String): Boolean = terms.exists { _.toUpperCase == word.toUpperCase }
